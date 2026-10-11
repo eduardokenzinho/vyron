@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 90" role="img" aria-labelledby="title">
+  <title id="title">VYRON — Street and skate</title>
+  <g fill="#fff" font-family="Trebuchet MS, Arial Rounded MT Bold, Arial, sans-serif" font-size="68" font-weight="900" letter-spacing="-5">
+    <text x="8" y="67" transform="rotate(-5 28 48)">v</text>
+    <text x="47" y="68" transform="rotate(3 65 48)">y</text>
+    <text x="88" y="66" transform="rotate(-2 108 48)">r</text>
+    <text x="126" y="68" transform="rotate(4 146 48)">o</text>
+    <text x="169" y="66" transform="rotate(-4 190 48)">n</text>
+  </g>
+  <path d="M14 79c35 10 91 9 150-1" fill="none" stroke="#ff5a1f" stroke-linecap="round" stroke-width="5"/>
+  <path d="m207 20 4 11 11 4-11 4-4 11-4-11-11-4 11-4z" fill="#ff5a1f"/>
+</svg>
