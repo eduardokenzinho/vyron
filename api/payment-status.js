@@ -1,4 +1,5 @@
 const { getConfig, requestMangofy } = require('../lib/mangofy');
+const { sendMetaPurchase } = require('../lib/meta-conversions');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -32,7 +33,21 @@ module.exports = async function handler(req, res) {
         .json({ error: 'A Mangofy não retornou o status do pagamento.' });
     }
 
-    return res.status(200).json({ status: payment.payment_status });
+    let conversionSent;
+    if (payment.payment_status === 'approved') {
+      try {
+        await sendMetaPurchase(req, payment, paymentCode);
+        conversionSent = true;
+      } catch (error) {
+        console.error('Falha ao enviar compra para a API de Conversões da Meta:', error.message);
+        conversionSent = false;
+      }
+    }
+
+    return res.status(200).json({
+      status: payment.payment_status,
+      ...(conversionSent !== undefined ? { conversionSent } : {}),
+    });
   } catch (error) {
     return res.status(502).json({ error: error.message });
   }

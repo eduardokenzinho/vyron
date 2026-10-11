@@ -1,3 +1,31 @@
+const META_PIXEL_ID = '1468752251841323';
+
+(function initializeMetaPixel() {
+  if (window.fbq) return;
+
+  const fbq = function trackMetaEvent() {
+    if (fbq.callMethod) {
+      fbq.callMethod.apply(fbq, arguments);
+    } else {
+      fbq.queue.push(arguments);
+    }
+  };
+  window.fbq = fbq;
+  window._fbq = fbq;
+  fbq.push = fbq;
+  fbq.loaded = true;
+  fbq.version = '2.0';
+  fbq.queue = [];
+
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = 'https://connect.facebook.net/en_US/fbevents.js';
+  document.head.append(script);
+
+  fbq('init', META_PIXEL_ID);
+  fbq('track', 'PageView');
+})();
+
 const checkoutStyle = document.createElement('style');
 checkoutStyle.textContent = `
   .customer-form { display:grid; gap:12px; margin:18px 0; }
@@ -73,8 +101,20 @@ document.querySelector('#cart-screen .checkout').before(customerForm);
 document.querySelector('#cart-screen .notice').textContent =
   'Frete grátis para todo o Brasil.';
 
+const originalAddToCart = window.add;
+window.add = function addToCartWithMetaEvent(productId) {
+  originalAddToCart(productId);
+  window.fbq('track', 'AddToCart', {
+    content_ids: ['vyron-forest', 'vyron-desert', 'vyron-midnight'][productId],
+    content_type: 'product',
+    value: [65, 69.9, 74.9][productId],
+    currency: 'BRL',
+  });
+};
+
 let paymentStatusTimer;
 let currentPaymentCode;
+let metaConversionRetries = 0;
 
 function setCheckoutError(message) {
   const error = document.getElementById('checkout-error');
@@ -247,8 +287,13 @@ async function checkPaymentStatus() {
 
     if (result.status === 'approved') {
       status.textContent = 'Pagamento confirmado. Obrigado pela compra!';
+      if (result.conversionSent === false && metaConversionRetries < 2) {
+        metaConversionRetries += 1;
+        return;
+      }
       clearInterval(paymentStatusTimer);
       paymentStatusTimer = null;
+      metaConversionRetries = 0;
     } else if (['expired', 'canceled', 'refused'].includes(result.status)) {
       status.textContent = 'Este pagamento não está mais pendente. Volte ao carrinho para tentar novamente.';
       clearInterval(paymentStatusTimer);
@@ -277,6 +322,19 @@ window.checkout = async function checkout() {
     .map((quantity, productId) => ({ productId, quantity }))
     .filter((item) => item.quantity > 0);
 
+  window.fbq('track', 'InitiateCheckout', {
+    content_ids: items.map(({ productId }) =>
+      ['vyron-forest', 'vyron-desert', 'vyron-midnight'][productId]
+    ),
+    content_type: 'product',
+    num_items: items.reduce((total, item) => total + item.quantity, 0),
+    value: items.reduce(
+      (total, item) => total + [65, 69.9, 74.9][item.productId] * item.quantity,
+      0
+    ),
+    currency: 'BRL',
+  });
+
   setCheckoutError('');
   button.disabled = true;
   button.textContent = 'GERANDO PIX...';
@@ -291,6 +349,7 @@ window.checkout = async function checkout() {
     if (!response.ok) throw new Error(result.error || 'Não foi possível gerar o Pix.');
 
     currentPaymentCode = result.paymentCode;
+    metaConversionRetries = 0;
     renderPix(result);
     if (paymentStatusTimer) clearInterval(paymentStatusTimer);
     paymentStatusTimer = setInterval(checkPaymentStatus, 5000);
