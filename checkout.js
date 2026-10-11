@@ -64,7 +64,7 @@ customerForm.innerHTML = `
   </div>
   <label class="privacy-consent">
     <input name="privacy_consent" type="checkbox" required>
-    <span>Estou ciente de que meus dados serão enviados à Mangofy para gerar o Pix e informar os dados necessários à entrega, e que o CEP será consultado pelo ViaCEP.</span>
+    <span>Estou ciente de que meus dados serão utilizados para processar o pagamento e informar os dados necessários à entrega, e que o CEP será consultado para preencher o endereço.</span>
   </label>
   <p class="customer-hint">Frete grátis no checkout para todo o Brasil.</p>
   <p class="checkout-error" id="checkout-error" role="alert" hidden></p>
@@ -176,9 +176,14 @@ function renderPix(payment) {
     image.alt = 'QR Code do Pix';
     image.src = qrUrl;
     image.addEventListener('error', () => {
-      image.remove();
       if (qrText) {
-        image.src = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrText)}`;
+        const fallbackUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrText)}`;
+        image.addEventListener('error', () => {
+          const error = document.getElementById('pix-image-error');
+          error.textContent = 'Não foi possível carregar a imagem do QR Code. Use o Pix copia e cola abaixo.';
+          error.hidden = false;
+        }, { once: true });
+        image.src = fallbackUrl;
       } else {
         const error = document.getElementById('pix-image-error');
         error.textContent = 'Não foi possível carregar a imagem do QR Code. Use o Pix copia e cola abaixo.';
@@ -199,7 +204,7 @@ function renderPix(payment) {
     document.getElementById('pix-image-container').append(image);
   } else {
     const error = document.getElementById('pix-image-error');
-    error.textContent = 'A Mangofy não retornou a imagem do QR Code. Use o Pix copia e cola abaixo.';
+    error.textContent = 'Não foi possível carregar a imagem do QR Code. Use o Pix copia e cola abaixo.';
     error.hidden = false;
   }
   document.getElementById('pix-expiry').textContent = payment.pix.expiresAt
