@@ -168,15 +168,32 @@ function renderPix(payment) {
   document.getElementById('pix-amount').textContent = money(payment.amount / 100);
   document.getElementById('delivery-address').textContent = address;
   document.getElementById('pix-code').value = payment.pix.text;
-  if (payment.pix.image && /^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(payment.pix.image)) {
+  const qrText = payment?.pix?.text || '';
+  const qrUrl = payment?.pix?.image || '';
+  if (qrUrl && /^(data:image\/|https?:\/\/)/i.test(qrUrl)) {
     const image = document.createElement('img');
     image.className = 'pix-image';
     image.alt = 'QR Code do Pix';
-    image.src = payment.pix.image;
+    image.src = qrUrl;
     image.addEventListener('error', () => {
       image.remove();
+      if (qrText) {
+        image.src = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrText)}`;
+      } else {
+        const error = document.getElementById('pix-image-error');
+        error.textContent = 'Não foi possível carregar a imagem do QR Code. Use o Pix copia e cola abaixo.';
+        error.hidden = false;
+      }
+    }, { once: true });
+    document.getElementById('pix-image-container').append(image);
+  } else if (qrText) {
+    const image = document.createElement('img');
+    image.className = 'pix-image';
+    image.alt = 'QR Code do Pix';
+    image.src = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrText)}`;
+    image.addEventListener('error', () => {
       const error = document.getElementById('pix-image-error');
-      error.textContent = 'Não foi possível carregar a imagem do QR Code. Use o Pix copia e cola abaixo.';
+      error.textContent = 'Não foi possível gerar o QR Code automaticamente. Use o Pix copia e cola abaixo.';
       error.hidden = false;
     }, { once: true });
     document.getElementById('pix-image-container').append(image);

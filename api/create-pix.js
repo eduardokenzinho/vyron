@@ -48,14 +48,21 @@ function sendError(res, status, message) {
 function normalizePixImage(image) {
   if (typeof image !== 'string') return null;
 
-  const compact = image.trim().replace(/\s/g, '');
-  const dataUri = compact.match(
-    /^(?:data:image\/(png|jpeg|webp);base64,)?([a-z0-9+/]+={0,2})$/i
-  );
-  if (!dataUri || dataUri[2].length % 4 !== 0) return null;
+  const compact = image.trim();
+  if (/^https?:\/\//i.test(compact)) return compact;
 
-  const mimeType = (dataUri[1] || 'png').toLowerCase();
-  return `data:image/${mimeType};base64,${dataUri[2]}`;
+  const dataUri = compact.match(/^data:image\/(png|jpeg|webp);base64,([a-z0-9+/]+={0,2})$/i);
+  if (dataUri) {
+    const mimeType = dataUri[1].toLowerCase();
+    return `data:image/${mimeType};base64,${dataUri[2]}`;
+  }
+
+  const rawBase64 = compact.replace(/\s/g, '');
+  if (/^[a-z0-9+/]+={0,2}$/i.test(rawBase64) && rawBase64.length % 4 === 0) {
+    return `data:image/png;base64,${rawBase64}`;
+  }
+
+  return null;
 }
 
 module.exports = async function handler(req, res) {
