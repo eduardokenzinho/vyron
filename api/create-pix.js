@@ -201,6 +201,9 @@ module.exports = async function handler(req, res) {
         installments: 1,
         payment_amount: paymentAmount,
         shipping_amount: 0,
+        postback_url:
+          process.env.MANGOFY_POSTBACK_URL ||
+          'https://vyron-beta.vercel.app/api/mangofy-webhook',
         items,
         customer: {
           email,
