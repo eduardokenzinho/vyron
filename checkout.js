@@ -30,16 +30,16 @@ const checkoutStyle = document.createElement('style');
 checkoutStyle.textContent = `
   .customer-form { display:grid; gap:12px; margin:18px 0; }
   .customer-form label { display:grid; gap:5px; font-size:13px; font-weight:700; }
-  .customer-form input { width:100%; padding:12px; border:1px solid #d5dbd2; border-radius:6px; font:inherit; }
+  .customer-form input { width:100%; padding:12px; border:1px solid var(--vyron-border); border-radius:6px; font:inherit; }
   .customer-form .privacy-consent { display:flex; align-items:flex-start; gap:9px; font-weight:400; line-height:1.5; }
   .customer-form .privacy-consent input { width:auto; margin:3px 0 0; }
   .customer-form .address-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .checkout-error { color:#a11; font-size:13px; line-height:1.5; }
-  .pix-code { width:100%; min-height:82px; padding:10px; border:1px solid #d5dbd2; border-radius:6px; resize:vertical; }
+  .checkout-error { color:var(--vyron-red); font-size:13px; line-height:1.5; }
+  .pix-code { width:100%; min-height:82px; padding:10px; border:1px solid var(--vyron-border); border-radius:6px; resize:vertical; }
   .pix-image { display:block; width:min(240px,100%); margin:18px auto; }
   .payment-status { font-weight:700; }
-  .customer-hint { color:#777; font-size:12px; }
-  .address-status { min-height:18px; margin:0; color:#777; font-size:12px; }
+  .customer-hint { color:var(--vyron-gray); font-size:12px; }
+  .address-status { min-height:18px; margin:0; color:var(--vyron-gray); font-size:12px; }
   @media(max-width:420px) { .customer-form .address-row { grid-template-columns:1fr; } }
 `;
 document.head.append(checkoutStyle);
@@ -101,9 +101,56 @@ document.querySelector('#cart-screen .checkout').before(customerForm);
 document.querySelector('#cart-screen .notice').textContent =
   'Frete grátis para todo o Brasil.';
 
-const originalAddToCart = window.add;
+const cartProductImages = [
+  'assets/verde-1.png',
+  'assets/deserto-1.png',
+  'assets/azul-1.png',
+];
+const originalUpdateCart = window.update;
+window.update = function updateCartWithProductImages() {
+  originalUpdateCart();
+
+  document.querySelectorAll('#items .line').forEach((line) => {
+    const productId = products.findIndex((product) =>
+      line.textContent.includes(product.name)
+    );
+    if (productId === -1) return;
+
+    const image = document.createElement('img');
+    image.className = 'cart-item-image';
+    image.src = cartProductImages[productId];
+    image.alt = products[productId].name;
+    line.prepend(image);
+  });
+};
+
+const addButtonTimers = new WeakMap();
 window.add = function addToCartWithMetaEvent(productId) {
-  originalAddToCart(productId);
+  const button = document.querySelectorAll('.product .details button')[productId];
+  if (!button) throw new Error(`Não foi possível localizar o botão do produto ${productId}.`);
+
+  cart[productId]++;
+  update();
+
+  if (!button.dataset.defaultLabel) {
+    button.dataset.defaultLabel = button.textContent;
+  }
+  const activeTimer = addButtonTimers.get(button);
+  if (activeTimer) clearTimeout(activeTimer);
+
+  button.textContent = 'ADICIONADO AO CARRINHO ✓';
+  button.classList.remove('added-to-cart');
+  void button.offsetWidth;
+  button.classList.add('added-to-cart');
+  addButtonTimers.set(
+    button,
+    setTimeout(() => {
+      button.textContent = button.dataset.defaultLabel;
+      button.classList.remove('added-to-cart');
+      addButtonTimers.delete(button);
+    }, 1800)
+  );
+
   window.fbq('track', 'AddToCart', {
     content_ids: ['vyron-forest', 'vyron-desert', 'vyron-midnight'][productId],
     content_type: 'product',
