@@ -1,6 +1,6 @@
 # VYRON
 
-Loja de mochilas com checkout Pix e consulta de CEP.
+Loja Vyron de streetwear com catálogo atual de mochilas, checkout Pix e consulta de CEP. A navegação destaca apenas os produtos disponíveis; Street, Utility e 2000 aparecem como universos de marca na página inicial.
 
 ## Publicar na Vercel
 
