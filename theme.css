@@ -183,10 +183,10 @@ button:hover,
 }
 
 .sale-marquee {
-  position: absolute;
-  inset: 0 0 auto;
+  position: relative;
   z-index: 2;
   overflow: hidden;
+  margin-bottom: 12px;
   padding: 12px 0;
   border-block: 2px solid #fff29a;
   background: #ffd400;
