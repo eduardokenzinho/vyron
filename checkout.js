@@ -239,7 +239,6 @@ function renderPix(payment) {
     .filter(Boolean)
     .join(', ');
   screen.innerHTML = `
-    <h2>Pagamento via Pix</h2>
     <p>Escaneie o QR Code ou copie o código Pix.</p>
     <div class="pix-amount" id="pix-amount"></div>
     <p><strong>Frete grátis</strong> · <span id="delivery-address"></span></p>
