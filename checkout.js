@@ -101,10 +101,161 @@ document.querySelector('#cart-screen .checkout').before(customerForm);
 document.querySelector('#cart-screen .notice').textContent =
   'Frete grátis para todo o Brasil.';
 
+const accessoryCatalog = [
+  {
+    name: 'VYRON Solar',
+    code: 'vyron-solar',
+    category: 'ÓCULOS VYRON',
+    description: 'Lente âmbar e linhas marcantes para completar o visual urbano.',
+    original: 159.8,
+    price: 79.9,
+    images: [
+      'assets/oculos solar.png',
+      'assets/oculos solar 2.png',
+      'assets/oculos solar 3.png',
+    ],
+  },
+  {
+    name: 'VYRON Chrome',
+    code: 'vyron-chrome',
+    category: 'ÓCULOS VYRON',
+    description: 'Armação prateada e lentes escuras com atitude futurista.',
+    original: 159.8,
+    price: 79.9,
+    images: [
+      'assets/oculos cinza.png',
+      'assets/oculos cinza2.png',
+      'assets/oculos cinza3.png',
+    ],
+  },
+  {
+    name: 'VYRON Racer',
+    code: 'vyron-racer',
+    category: 'ÓCULOS VYRON',
+    description: 'Óculos esportivo preto com detalhes azuis para o corre.',
+    original: 179.8,
+    price: 89.9,
+    images: ['assets/oculos.png', 'assets/oculos2.png', 'assets/oculos3.png'],
+  },
+  {
+    name: 'VYRON Ivory',
+    code: 'vyron-ivory',
+    category: 'LUVAS VYRON',
+    description: 'Luvas claras com acabamento esportivo e visual clean.',
+    original: 199.8,
+    price: 99.9,
+    images: [
+      'assets/luva branca.png',
+      'assets/luva branca 2.png',
+      'assets/luva branca 3.png',
+    ],
+  },
+  {
+    name: 'VYRON Shadow',
+    code: 'vyron-shadow',
+    category: 'LUVAS VYRON',
+    description: 'Luvas pretas com detalhes e proteção para o uso urbano.',
+    original: 199.8,
+    price: 99.9,
+    images: [
+      'assets/luva preta.png',
+      'assets/luva preta 2.png',
+      'assets/luva preta 3.png',
+    ],
+  },
+  {
+    name: 'VYRON Bone',
+    code: 'vyron-bone',
+    category: 'LUVAS VYRON',
+    description: 'Luvas escuras com estampa de esqueleto e visual exclusivo.',
+    original: 179.8,
+    price: 89.9,
+    images: ['assets/luva 1.png', 'assets/luva 2.png', 'assets/luva 3.png'],
+  },
+];
+
+products.push(
+  ...accessoryCatalog.map(({ name, code, original, price }) => ({
+    name,
+    code,
+    original,
+    price,
+  }))
+);
+cart.push(...accessoryCatalog.map(() => 0));
+
+const accessoriesSection = document.createElement('section');
+accessoriesSection.className = 'section';
+accessoriesSection.id = 'acessorios';
+accessoriesSection.innerHTML = `
+  <div class="eyebrow" style="color:#617b39">ACESSÓRIOS VYRON • 50% DE DESCONTO</div>
+  <h2>Óculos e luvas para completar o corre.</h2>
+  <p class="sub">Novos acessórios VYRON com frete grátis para todo o Brasil.</p>
+  <div class="products"></div>
+`;
+document.querySelector('#sobre').before(accessoriesSection);
+document.querySelector('header nav').insertAdjacentHTML(
+  'beforeend',
+  '<a href="#acessorios">ACESSÓRIOS</a>'
+);
+
+const accessoriesGrid = accessoriesSection.querySelector('.products');
+accessoryCatalog.forEach((product, accessoryIndex) => {
+  const productIndex = accessoryIndex + 3;
+  const galleryId = `accessory-${accessoryIndex}`;
+  const galleryImages = product.images
+    .map(
+      (image, imageIndex) =>
+        `<img src="${image}" alt="${product.name} — vista ${imageIndex + 1}" loading="lazy">`
+    )
+    .join('');
+  const galleryControls =
+    product.images.length > 1
+      ? `<button class="gallery-arrow prev" onclick="slideGallery('${galleryId}',-1)" aria-label="Foto anterior">‹</button>
+        <button class="gallery-arrow next" onclick="slideGallery('${galleryId}',1)" aria-label="Próxima foto">›</button>
+        <div class="gallery-dots">${product.images
+          .map((_, index) => `<span${index === 0 ? ' class="active"' : ''}></span>`)
+          .join('')}</div>`
+      : '';
+  const card = document.createElement('article');
+  card.className = 'product';
+  card.innerHTML = `
+    <div class="gallery">
+      <div class="gallery-track" id="gallery-${galleryId}">${galleryImages}</div>
+      ${galleryControls}
+    </div>
+    <div class="details">
+      <div class="tag">${product.category}</div>
+      <h3>${product.name}</h3>
+      <p>${product.description}</p>
+      <div class="price-wrap">
+        <span class="price-old">${money(product.original)}</span>
+        <span class="price">${money(product.price)}</span>
+        <span class="discount-badge">-50%</span>
+      </div>
+      <button onclick="add(${productIndex})">ADICIONAR AO CARRINHO →</button>
+    </div>
+  `;
+  accessoriesGrid.append(card);
+
+  const track = card.querySelector('.gallery-track');
+  track.addEventListener(
+    'scroll',
+    () => {
+      const index = Math.round(track.scrollLeft / track.clientWidth);
+      card
+        .querySelectorAll('.gallery-dots span')
+        .forEach((dot, dotIndex) => dot.classList.toggle('active', dotIndex === index));
+    },
+    { passive: true }
+  );
+});
+
 const cartProductImages = [
   'assets/verde-1.png',
   'assets/deserto-1.png',
   'assets/azul-1.png',
+  ...accessoryCatalog.map((product) => product.images[0]),
 ];
 const originalUpdateCart = window.update;
 window.update = function updateCartWithProductImages() {
@@ -152,9 +303,11 @@ window.add = function addToCartWithMetaEvent(productId) {
   );
 
   window.fbq('track', 'AddToCart', {
-    content_ids: ['vyron-forest', 'vyron-desert', 'vyron-midnight'][productId],
+    content_ids:
+      products[productId].code ||
+      ['vyron-forest', 'vyron-desert', 'vyron-midnight'][productId],
     content_type: 'product',
-    value: [65, 69.9, 74.9][productId],
+    value: products[productId].price,
     currency: 'BRL',
   });
 };
@@ -355,7 +508,7 @@ async function checkPaymentStatus() {
 
 window.checkout = async function checkout() {
   if (!cart.some(Boolean)) {
-    alert('Adicione uma mochila ao carrinho.');
+    alert('Adicione um produto ao carrinho.');
     return;
   }
 
@@ -369,13 +522,15 @@ window.checkout = async function checkout() {
     .filter((item) => item.quantity > 0);
 
   window.fbq('track', 'InitiateCheckout', {
-    content_ids: items.map(({ productId }) =>
-      ['vyron-forest', 'vyron-desert', 'vyron-midnight'][productId]
+    content_ids: items.map(
+      ({ productId }) =>
+        products[productId].code ||
+        ['vyron-forest', 'vyron-desert', 'vyron-midnight'][productId]
     ),
     content_type: 'product',
     num_items: items.reduce((total, item) => total + item.quantity, 0),
     value: items.reduce(
-      (total, item) => total + [65, 69.9, 74.9][item.productId] * item.quantity,
+      (total, item) => total + products[item.productId].price * item.quantity,
       0
     ),
     currency: 'BRL',

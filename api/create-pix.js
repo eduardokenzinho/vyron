@@ -4,6 +4,12 @@ const products = [
   { code: 'vyron-forest', name: 'VYRON Forest', price: 6500 },
   { code: 'vyron-desert', name: 'VYRON Desert', price: 6990 },
   { code: 'vyron-midnight', name: 'VYRON Midnight', price: 7490 },
+  { code: 'vyron-solar', name: 'VYRON Solar', price: 7990 },
+  { code: 'vyron-chrome', name: 'VYRON Chrome', price: 7990 },
+  { code: 'vyron-racer', name: 'VYRON Racer', price: 8990 },
+  { code: 'vyron-ivory', name: 'VYRON Ivory', price: 9990 },
+  { code: 'vyron-shadow', name: 'VYRON Shadow', price: 9990 },
+  { code: 'vyron-bone', name: 'VYRON Bone', price: 8990 },
 ];
 
 function isValidCpf(value) {
