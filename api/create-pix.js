@@ -208,7 +208,7 @@ module.exports = async function handler(req, res) {
       paymentUrl,
       'POST',
       {
-        external_code: `pagamento-vyron-${require('crypto').randomUUID()}`,
+        external_code: `vyron-${require('crypto').randomUUID()}`,
         payment_method: 'pix',
         payment_format: 'regular',
         installments: 1,
